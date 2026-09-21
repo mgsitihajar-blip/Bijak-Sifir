@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bijak Sifir!</title>
+<style>
+:root{
+  color-scheme:light only;
+  --pink:#ff6b9d;--orange:#ffa94d;--yellow:#ffd43b;--green:#69db7c;--blue:#4dabf7;--purple:#9775fa;
+  --bg1:#a8edea;--bg2:#fed6e3;--text:#2b2b3d;
+  box-sizing:border-box;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;font-family:'Comic Sans MS','Segoe UI',sans-serif;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2));
+  color:var(--text);
+  min-height:100vh;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  display:flex;flex-direction:column;align-items:center;
+}
+.screen{width:100%;max-width:600px;padding:20px;display:none;animation:fadein .4s;}
+.screen.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+h1{text-align:center;color:#d6336c;font-size:2em;text-shadow:2px 2px 0 #fff;}
+h2{text-align:center;color:#5f3dc4;}
+.card{background:#fff;border-radius:24px;padding:24px;box-shadow:0 8px 20px rgba(0,0,0,.15);margin-bottom:16px;}
+input[type=text],select{
+  width:100%;padding:14px;font-size:1.2em;border-radius:14px;border:3px solid var(--blue);margin:8px 0;font-family:inherit;
+}
+.btn{
+  background:var(--pink);color:#fff;border:none;border-radius:16px;padding:16px 24px;font-size:1.2em;
+  font-weight:bold;cursor:pointer;margin:6px;box-shadow:0 4px 0 #c2255c;transition:transform .1s;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 0 0 #c2255c;}
+.btn.big{width:100%;font-size:1.4em;background:var(--green);box-shadow:0 4px 0 #2f9e44;}
+.btn.big:active{box-shadow:0 0 0 #2f9e44;}
+.btn.alt{background:var(--blue);box-shadow:0 4px 0 #1971c2;}
+.btn.alt:active{box-shadow:0 0 0 #1971c2;}
+.chip-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.chip{
+  padding:14px;border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;
+  background:#eee;font-weight:bold;font-size:1.2em;cursor:pointer;border:3px solid #ccc;
+}
+.chip.sel{background:var(--yellow);border-color:#f08c00;transform:scale(1.1);}
+.time-grid{display:flex;gap:10px;justify-content:center;}
+.time-opt{padding:12px 18px;border-radius:14px;background:#eee;border:3px solid #ccc;font-weight:bold;cursor:pointer;}
+.time-opt.sel{background:var(--orange);border-color:#e8590c;color:#fff;}
+#timerDisplay{font-size:2em;text-align:center;color:#e8590c;font-weight:bold;}
+table.memtable{width:100%;border-collapse:collapse;margin:10px 0;}
+table.memtable td{padding:8px;text-align:center;font-size:1.1em;border-bottom:2px dashed #ddd;color:var(--text);font-weight:bold;}
+#progressBar{height:14px;background:#eee;border-radius:8px;overflow:hidden;margin-bottom:10px;}
+#progressFill{height:100%;background:var(--green);width:0%;transition:width .3s;}
+.qtext{font-size:2em;text-align:center;color:#5f3dc4;margin:14px 0;font-weight:bold;}
+.mc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.mc-opt{padding:18px;border-radius:16px;background:var(--blue);color:#fff;font-size:1.4em;font-weight:bold;border:none;cursor:pointer;}
+.mc-opt.correct{background:var(--green)!important;}
+.mc-opt.wrong{background:#fa5252!important;}
+.dd-zone{min-height:70px;border:3px dashed var(--purple);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6em;color:#aaa;margin:10px 0;}
+.dd-zone.filled{color:#5f3dc4;font-weight:bold;border-style:solid;}
+.dd-options{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.dd-item{padding:14px 18px;background:var(--yellow);border-radius:12px;font-size:1.3em;font-weight:bold;cursor:grab;}
+.match-col{display:flex;flex-direction:column;gap:10px;}
+.match-row{display:flex;gap:20px;justify-content:space-between;}
+.match-item{flex:1;padding:12px;background:#f1f3f5;border-radius:12px;text-align:center;cursor:pointer;font-weight:bold;border:3px solid transparent;}
+.match-item.sel{border-color:var(--purple);}
+.match-item.done{background:var(--green);color:#fff;}
+#fillInput{font-size:1.5em;text-align:center;width:100px;}
+.feedback{text-align:center;font-size:1.5em;font-weight:bold;height:40px;}
+.stars{text-align:center;font-size:3em;}
+#confettiCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;}
+.record-item{background:#fff;border-radius:14px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.badge{background:var(--purple);color:#fff;padding:6px 14px;border-radius:20px;font-weight:bold;}
+@media (prefers-color-scheme: dark){}
+</style>
+</head>
+<body>
+<canvas id="confettiCanvas"></canvas>
+
+<div id="screenStart" class="screen active">
+<h1>🎉 Bijak Sifir! 🎉</h1>
+<div class="card">
+  <label>Nama Pemain:</label>
+  <input type="text" id="playerName" placeholder="Tulis nama anda...">
+  <label>Pilih Sifir (boleh pilih lebih dari satu):</label>
+  <div class="chip-grid" id="tableChips"></div>
+  <label style="display:block;margin-top:14px;">Masa Hafalan:</label>
+  <div class="time-grid" id="timeOpts">
+    <div class="time-opt sel" data-t="60">1 minit</div>
+    <div class="time-opt" data-t="120">2 minit</div>
+    <div class="time-opt" data-t="180">3 minit</div>
+  </div>
+  <button class="btn big" onclick="startMemorize()" style="margin-top:16px;">🚀 Mula Belajar!</button>
+  <button class="btn alt" style="width:100%;" onclick="showRecords()">📖 Rekod Pemain</button>
+</div>
+</div>
+
+<div id="screenMemorize" class="screen">
+<h2>Hafalkan Sifir Ini!</h2>
+<div id="timerDisplay">60</div>
+<div class="card" id="memContent"></div>
+<button class="btn big" onclick="startQuiz()">✅ Sudah Sedia!</button>
+</div>
+
+<div id="screenQuiz" class="screen">
+<div class="topbar"><span class="badge" id="qCounter">1/20</span><span class="badge" id="scoreBadge">0 markah</span></div>
+<div id="progressBar"><div id="progressFill"></div></div>
+<div class="card" id="quizArea"></div>
+<div class="feedback" id="feedback"></div>
+</div>
+
+<div id="screenResult" class="screen">
+<h1>🏆 Keputusan 🏆</h1>
+<div class="card" style="text-align:center;">
+  <div class="stars" id="starsDisplay"></div>
+  <h2 id="resultName"></h2>
+  <p style="font-size:1.4em;">Jumlah Markah: <b id="resultScore"></b>/20</p>
+  <p style="font-size:1.2em;">Betul: <span id="resultCorrect"></span> | Salah: <span id="resultWrong"></span></p>
+  <button class="btn big" onclick="location.reload()">🔄 Main Lagi</button>
+  <button class="btn alt" style="width:100%;" onclick="showRecords()">📖 Lihat Rekod</button>
+</div>
+</div>
+
+<div id="screenRecords" class="screen">
+<h2>📖 Rekod Pemain</h2>
+<div class="card" id="recordsList"></div>
+<button class="btn big" onclick="goHome()">⬅️ Kembali</button>
+</div>
+
+<audio id="sfxCorrect" src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=" ></audio>
+<script>
+/* ---------- STATE ---------- */
+let state={name:'',tables:[],memTime:60,questions:[],idx:0,score:0,correct:0,wrong:0,dragAnswer:null,matchSel:null,matchPairs:[]};
+
+/* ---------- START SCREEN ---------- */
+const tableChips=document.getElementById('tableChips');
+for(let n=2;n<=12;n++){
+  const c=document.createElement('div');
+  c.className='chip';c.textContent=n;c.dataset.n=n;
+  c.onclick=()=>{c.classList.toggle('sel');};
+  tableChips.appendChild(c);
+}
+document.querySelectorAll('.time-opt').forEach(el=>{
+  el.onclick=()=>{
+    document.querySelectorAll('.time-opt').forEach(e=>e.classList.remove('sel'));
+    el.classList.add('sel');
+    state.memTime=parseInt(el.dataset.t);
+  };
+});
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goHome(){showScreen('screenStart');}
+
+function startMemorize(){
+  const nm=document.getElementById('playerName').value.trim();
+  const sel=[...document.querySelectorAll('.chip.sel')].map(c=>parseInt(c.dataset.n));
+  if(!nm){alert('Sila tulis nama anda!');return;}
+  if(sel.length===0){alert('Sila pilih sekurang-kurangnya satu sifir!');return;}
+  state.name=nm;state.tables=sel;
+  buildMemTable();
+  showScreen('screenMemorize');
+  runTimer();
+}
+function buildMemTable(){
+  let html='';
+  state.tables.forEach(t=>{
+    html+='<h3 style="color:#e8590c;">Sifir '+t+'</h3><table class="memtable">';
+    for(let i=1;i<=12;i++){
+      html+='<tr><td>'+i+' × '+t+' = '+(i*t)+'</td></tr>';
+    }
+    html+='</table>';
+  });
+  document.getElementById('memContent').innerHTML=html;
+}
+let timerInt;
+function runTimer(){
+  let t=state.memTime;
+  const disp=document.getElementById('timerDisplay');
+  disp.textContent=t;
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    t--;disp.textContent=t;
+    if(t<=0){clearInterval(timerInt);startQuiz();}
+  },1000);
+}
+
+/* ---------- QUIZ GENERATION ---------- */
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function genQuestions(){
+  const types=['mc','dd','match','fill'];
+  let pool=[];
+  state.tables.forEach(t=>{for(let i=1;i<=12;i++)pool.push({a:i,b:t});});
+  pool=shuffle(pool);
+  let qs=[];
+  let used=new Set();
+  for(let i=0;i<20;i++){
+    let p=pool[i%pool.length];
+    let key=p.a+'x'+p.b+'_'+i;
+    let type=types[i%4];
+    if(type==='match'){
+      // build a match question with 3 pairs
+      let extra=[pool[(i+1)%pool.length],pool[(i+2)%pool.length]];
+      qs.push({type:'match',pairs:[p,...extra]});
+    } else {
+      qs.push({type:type,a:p.a,b:p.b,ans:p.a*p.b});
+    }
+  }
+  return qs;
+}
+
+function startQuiz(){
+  clearInterval(timerInt);
+  state.questions=genQuestions();
+  state.idx=0;state.score=0;state.correct=0;state.wrong=0;
+  showScreen('screenQuiz');
+  renderQuestion();
+}
+
+function updateHUD(){
+  document.getElementById('qCounter').textContent=(state.idx+1)+'/20';
+  document.getElementById('scoreBadge').textContent=state.score+' markah';
+  document.getElementById('progressFill').style.width=((state.idx)/20*100)+'%';
+}
+
+function renderQuestion(){
+  document.getElementById('feedback').textContent='';
+  if(state.idx>=20){return showResult();}
+  updateHUD();
+  const q=state.questions[state.idx];
+  const area=document.getElementById('quizArea');
+  if(q.type==='mc'){
+    let opts=new Set([q.ans]);
+    while(opts.size<4){
+      let d=q.ans+Math.floor(Math.random()*10)-5;
+      if(d>0&&d!==q.ans)opts.add(d);
+    }
+    opts=shuffle([...opts]);
+    area.innerHTML='<div class="qtext">'+q.a+' × '+q.b+' = ?</div><div class="mc-grid">'+
+      opts.map(o=>'<button class="mc-opt" onclick="answerMC(this,'+o+','+q.ans+')">'+o+'</button>').join('')+'</div>';
+  } else if(q.type==='dd'){
+    let opts=new Set([q.ans]);
+    while(opts.size<4){let d=q.ans+Math.floor(Math.random()*10)-5;if(d>0&&d!==q.ans)opts.add(d);}
+    opts=shuffle([...opts]);
+    area.innerHTML='<div class="qtext">'+q.a+' × '+q.b+' = ?</div>'+
+      '<div class="dd-zone" id="ddZone" ondragover="event.preventDefault()" ondrop="dropAns(event,'+q.ans+')">Seret jawapan sini</div>'+
+      '<div class="dd-options">'+opts.map(o=>'<div class="dd-item" draggable="true" ondragstart="event.dataTransfer.setData(\'text\','+o+')">'+o+'</div>').join('')+'</div>'+
+      '<button class="btn alt" style="width:100%;margin-top:10px;" onclick="checkDD('+q.ans+')">Semak Jawapan</button>';
+    state.dragAnswer=null;
+  } else if(q.type==='fill'){
+    area.innerHTML='<div class="qtext">'+q.a+' × '+q.b+' = <input type="text" id="fillInput" inputmode="numeric"></div>'+
+      '<button class="btn big" onclick="checkFill('+q.ans+')">Semak</button>';
+    setTimeout(()=>document.getElementById('fillInput').focus(),100);
+  } else if(q.type==='match'){
+    state.matchSel=null;state.matchPairs=[];
+    let lefts=q.pairs.map((p,i)=>({id:i,text:p.a+' × '+p.b,ans:p.a*p.b}));
+    let rights=shuffle(q.pairs.map((p,i)=>({id:i,text:''+(p.a*p.b)})));
+    let html='<div class="qtext" style="font-size:1.3em;">Padankan soalan dengan jawapan!</div><div class="match-row">';
+    html+='<div class="match-col" id="matchLeft">'+lefts.map(l=>'<div class="match-item" data-id="'+l.id+'" onclick="selMatch(this,\'L\','+l.id+')">'+l.text+'</div>').join('')+'</div>';
+    html+='<div class="match-col" id="matchRight">'+rights.map(r=>'<div class="match-item" data-id="'+r.id+'" onclick="selMatch(this,\'R\','+r.id+')">'+r.text+'</div>').join('')+'</div>';
+    html+='</div>';
+    area.innerHTML=html;
+    state.matchTotal=q.pairs.length;state.matchDone=0;
+  }
+}
+
+function feedbackMsg(ok){
+  const f=document.getElementById('feedback');
+  if(ok){f.textContent='✅ Betul! Hebat!';f.style.color='#2f9e44';state.score+=1;state.correct++;pulseStars();}
+  else{f.textContent='❌ Cuba lagi lain kali!';f.style.color='#e03131';state.wrong++;}
+}
+function nextQ(){state.idx++;setTimeout(renderQuestion,900);}
+
+function answerMC(btn,val,ans){
+  document.querySelectorAll('.mc-opt').forEach(b=>b.disabled=true);
+  if(val===ans){btn.classList.add('correct');feedbackMsg(true);}
+  else{btn.classList.add('wrong');feedbackMsg(false);
+    document.querySelectorAll('.mc-opt').forEach(b=>{if(parseInt(b.textContent)===ans)b.classList.add('correct');});
+  }
+  nextQ();
+}
+function dropAns(e,ans){
+  e.preventDefault();
+  let val=e.dataTransfer.getData('text');
+  const zone=document.getElementById('ddZone');
+  zone.textContent=val;zone.classList.add('filled');
+  state.dragAnswer=parseInt(val);
+}
+function checkDD(ans){
+  if(state.dragAnswer===null){feedbackMsg(false);document.getElementById('feedback').textContent='Seret dahulu satu jawapan!';return;}
+  feedbackMsg(state.dragAnswer===ans);
+  nextQ();
+}
+function checkFill(ans){
+  const v=parseInt(document.getElementById('fillInput').value);
+  feedbackMsg(v===ans);
+  nextQ();
+}
+function selMatch(el,side,id){
+  if(el.classList.contains('done'))return;
+  if(!state.matchSel){
+    state.matchSel={side,id,el};el.classList.add('sel');return;
+  }
+  if(state.matchSel.side===side){
+    state.matchSel.el.classList.remove('sel');state.matchSel={side,id,el};el.classList.add('sel');return;
+  }
+  // check pair
+  const L=state.matchSel.side==='L'?state.matchSel:{side,id,el};
+  const R=state.matchSel.side==='R'?state.matchSel:{side,id,el};
+  if(L.id===R.id){
+    L.el.classList.add('done');R.el.classList.add('done');
+    L.el.classList.remove('sel');R.el.classList.remove('sel');
+    state.matchDone++;
+    document.getElementById('feedback').textContent='✅ Padanan betul!';document.getElementById('feedback').style.color='#2f9e44';
+    state.matchSel=null;
+    if(state.matchDone>=state.matchTotal){
+      state.score+=1;state.correct++;
+      nextQ();
+    }
+  } else {
+    L.el.classList.remove('sel');R.el.classList.remove('sel');
+    document.getElementById('feedback').textContent='❌ Padanan salah, cuba lagi!';document.getElementById('feedback').style.color='#e03131';
+    state.wrong++;state.matchSel=null;
+  }
+}
+
+/* ---------- RESULT ---------- */
+function showResult(){
+  let stars=0;
+  if(state.correct>=20)stars=5;
+  else if(state.correct>=16)stars=4;
+  else if(state.correct>=11)stars=3;
+  else if(state.correct>=6)stars=2;
+  else if(state.correct>=1)stars=1;
+  document.getElementById('starsDisplay').textContent='⭐'.repeat(stars)+'☆'.repeat(5-stars);
+  document.getElementById('resultName').textContent=state.name;
+  document.getElementById('resultScore').textContent=state.score;
+  document.getElementById('resultCorrect').textContent=state.correct;
+  document.getElementById('resultWrong').textContent=(20-state.correct);
+  showScreen('screenResult');
+  saveRecord(stars,Math.round(state.correct/20*100));
+  if(state.correct===20)fireConfetti();
+}
+function saveRecord(stars,pct){
+  let recs=JSON.parse(localStorage.getItem('sifir_records')||'[]');
+  recs.push({name:state.name,tables:state.tables,score:state.score,stars,pct,date:new Date().toLocaleDateString('ms-MY')});
+  localStorage.setItem('sifir_records',JSON.stringify(recs));
+}
+function showRecords(){
+  let recs=JSON.parse(localStorage.getItem('sifir_records')||'[]').reverse();
+  const list=document.getElementById('recordsList');
+  if(recs.length===0){list.innerHTML='<p style="text-align:center;">Belum ada rekod lagi. Mula main sekarang!</p>';}
+  else{
+    list.innerHTML=recs.map(r=>
+      '<div class="record-item"><span>'+r.name+' (Sifir '+r.tables.join(',')+')<br><small>'+r.date+'</small></span>'+
+      '<span style="text-align:right;">'+'⭐'.repeat(r.stars)+'☆'.repeat(5-r.stars)+'<br><b>Markah: '+r.score+'/20</b></span></div>'
+    ).join('');
+  }
+  showScreen('screenRecords');
+}
+
+/* ---------- FX ---------- */
+function pulseStars(){/* simple flash via CSS class could be added; kept lightweight */}
+function fireConfetti(){
+  const c=document.getElementById('confettiCanvas');
+  c.width=innerWidth;c.height=innerHeight;
+  const ctx=c.getContext('2d');
+  let parts=[];
+  for(let i=0;i<150;i++){
+    parts.push({x:Math.random()*c.width,y:-20,r:4+Math.random()*6,c:`hsl(${Math.random()*360},90%,60%)`,s:2+Math.random()*4,a:Math.random()*Math.PI});
+  }
+  let frame=0;
+  function anim(){
+    ctx.clearRect(0,0,c.width,c.height);
+    parts.forEach(p=>{
+      p.y+=p.s;p.x+=Math.sin(p.a+p.y*0.02)*2;
+      ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,p.r,p.r);
+    });
+    frame++;
+    if(frame<150)requestAnimationFrame(anim);
+    else ctx.clearRect(0,0,c.width,c.height);
+  }
+  anim();
+}
+</script>
+</body>
+</html>
