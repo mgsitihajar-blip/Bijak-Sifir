@@ -1,0 +1,25 @@
+{
+  "name": "Bijak Sifir!",
+  "short_name": "Bijak Sifir",
+  "description": "Aplikasi belajar dan menghafal sifir untuk kanak-kanak",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#a8edea",
+  "theme_color": "#ff6b9d",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
