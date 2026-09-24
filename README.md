@@ -12,7 +12,6 @@ HTML, CSS dan JavaScript vanila — tiada backend atau dependency diperlukan.
   butang "Sudah Sedia" untuk terus ke soalan.
 - **Fasa Soalan** — 20 soalan setiap sesi, campuran 4 jenis:
   - Pilihan berganda
-  - Seret & lepas (drag & drop)
   - Padankan (matching)
   - Isi tempat kosong
 - **Sistem Markah & Bintang** — 1 markah setiap soalan betul (maksimum

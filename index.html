@@ -56,10 +56,6 @@ table.memtable td{padding:8px;text-align:center;font-size:1.1em;border-bottom:2p
 .mc-opt{padding:18px;border-radius:16px;background:var(--blue);color:#fff;font-size:1.4em;font-weight:bold;border:none;cursor:pointer;}
 .mc-opt.correct{background:var(--green)!important;}
 .mc-opt.wrong{background:#fa5252!important;}
-.dd-zone{min-height:70px;border:3px dashed var(--purple);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6em;color:#aaa;margin:10px 0;}
-.dd-zone.filled{color:#5f3dc4;font-weight:bold;border-style:solid;}
-.dd-options{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
-.dd-item{padding:14px 18px;background:var(--yellow);border-radius:12px;font-size:1.3em;font-weight:bold;cursor:grab;}
 .match-col{display:flex;flex-direction:column;gap:10px;}
 .match-row{display:flex;gap:20px;justify-content:space-between;}
 .match-item{flex:1;padding:12px;background:#f1f3f5;border-radius:12px;text-align:center;cursor:pointer;font-weight:bold;border:3px solid transparent;}
@@ -131,7 +127,7 @@ table.memtable td{padding:8px;text-align:center;font-size:1.1em;border-bottom:2p
 <audio id="sfxCorrect" src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=" ></audio>
 <script>
 /* ---------- STATE ---------- */
-let state={name:'',tables:[],memTime:60,questions:[],idx:0,score:0,correct:0,wrong:0,dragAnswer:null,matchSel:null,matchPairs:[]};
+let state={name:'',tables:[],memTime:60,questions:[],idx:0,score:0,correct:0,wrong:0,matchSel:null,matchPairs:[]};
 
 /* ---------- START SCREEN ---------- */
 const tableChips=document.getElementById('tableChips');
@@ -192,7 +188,7 @@ function runTimer(){
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
 function genQuestions(){
-  const types=['mc','dd','match','fill'];
+  const types=['mc','match','fill'];
   let pool=[];
   state.tables.forEach(t=>{for(let i=1;i<=12;i++)pool.push({a:i,b:t});});
   pool=shuffle(pool);
@@ -201,7 +197,7 @@ function genQuestions(){
   for(let i=0;i<20;i++){
     let p=pool[i%pool.length];
     let key=p.a+'x'+p.b+'_'+i;
-    let type=types[i%4];
+    let type=types[i%3];
     if(type==='match'){
       // build a match question with 3 pairs
       let extra=[pool[(i+1)%pool.length],pool[(i+2)%pool.length]];
@@ -242,15 +238,6 @@ function renderQuestion(){
     opts=shuffle([...opts]);
     area.innerHTML='<div class="qtext">'+q.a+' × '+q.b+' = ?</div><div class="mc-grid">'+
       opts.map(o=>'<button class="mc-opt" onclick="answerMC(this,'+o+','+q.ans+')">'+o+'</button>').join('')+'</div>';
-  } else if(q.type==='dd'){
-    let opts=new Set([q.ans]);
-    while(opts.size<4){let d=q.ans+Math.floor(Math.random()*10)-5;if(d>0&&d!==q.ans)opts.add(d);}
-    opts=shuffle([...opts]);
-    area.innerHTML='<div class="qtext">'+q.a+' × '+q.b+' = ?</div>'+
-      '<div class="dd-zone" id="ddZone" ondragover="event.preventDefault()" ondrop="dropAns(event,'+q.ans+')">Seret jawapan sini</div>'+
-      '<div class="dd-options">'+opts.map(o=>'<div class="dd-item" draggable="true" ondragstart="event.dataTransfer.setData(\'text\','+o+')">'+o+'</div>').join('')+'</div>'+
-      '<button class="btn alt" style="width:100%;margin-top:10px;" onclick="checkDD('+q.ans+')">Semak Jawapan</button>';
-    state.dragAnswer=null;
   } else if(q.type==='fill'){
     area.innerHTML='<div class="qtext">'+q.a+' × '+q.b+' = <input type="text" id="fillInput" inputmode="numeric"></div>'+
       '<button class="btn big" onclick="checkFill('+q.ans+')">Semak</button>';
@@ -281,18 +268,6 @@ function answerMC(btn,val,ans){
   else{btn.classList.add('wrong');feedbackMsg(false);
     document.querySelectorAll('.mc-opt').forEach(b=>{if(parseInt(b.textContent)===ans)b.classList.add('correct');});
   }
-  nextQ();
-}
-function dropAns(e,ans){
-  e.preventDefault();
-  let val=e.dataTransfer.getData('text');
-  const zone=document.getElementById('ddZone');
-  zone.textContent=val;zone.classList.add('filled');
-  state.dragAnswer=parseInt(val);
-}
-function checkDD(ans){
-  if(state.dragAnswer===null){feedbackMsg(false);document.getElementById('feedback').textContent='Seret dahulu satu jawapan!';return;}
-  feedbackMsg(state.dragAnswer===ans);
   nextQ();
 }
 function checkFill(ans){
